@@ -1,0 +1,21 @@
+* 
+{  box-sizing  : border-box !important;  /** include content + border + padding in box size **/
+   font-family : 'Open Sans', sans-serif ;
+   font-size   : 11pt ; 
+   overscroll-behavior: none;  /** see: https://developer.mozilla.org/en-US/docs/Web/CSS/overscroll-behavior **/
+}
+
+body
+{
+   background-color : rgb(20%,20%,20%) ;
+   color            : rgb(95%,95%,95%) ;
+}
+
+.mov{
+   display: flex;
+   justify-content: left;
+}
+
+.mov1{
+   margin-right: 50px;
+}

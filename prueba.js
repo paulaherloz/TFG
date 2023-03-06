@@ -1,236 +1,39 @@
-const canvas = document.getElementById('glcanvas');
-const gl = canvas.getContext('webgl2');
-const LADO_CUBO = 0.5;
-var pos_x = 0.0;
-var pos_y = 0.0;
-var rota_x = 0.0;
-var rota_y = 0.0;
-var rota_z = 0.0;
 
 
-const x = document.querySelector("#x");
-const mostrarx = document.querySelector("#mostrarx");
+//fila medio
+var cubo = new Cubo(gl, 0,0,0);
+var cubo_derecha = new Cubo(gl, LADO_CUBO, 0,0);
+var cubo_izquierda = new Cubo(gl, -LADO_CUBO, 0,0);
+var cubo_delante = new Cubo(gl, 0, 0, LADO_CUBO);
+var cubo_delante_derecha = new Cubo(gl, LADO_CUBO, 0, LADO_CUBO);
+var cubo_delante_izquierda = new Cubo(gl, -LADO_CUBO, 0, LADO_CUBO);
+var cubo_detras = new Cubo(gl, 0, 0,-LADO_CUBO);
+var cubo_detras_derecha = new Cubo(gl, LADO_CUBO, 0, -LADO_CUBO);
+var cubo_detras_izquierda = new Cubo(gl, -LADO_CUBO, 0, -LADO_CUBO);
 
-x.oninput= () => {
-    mostrarx.innerHTML = x.value
-}
+//fila arriba
 
-const y = document.querySelector("#y");
-const mostrary = document.querySelector("#mostrary");
+var cubo_arr = new Cubo(gl, 0,LADO_CUBO,0);
+var cubo_derecha_arr = new Cubo(gl, LADO_CUBO, LADO_CUBO,0);
+var cubo_izquierda_arr = new Cubo(gl, -LADO_CUBO, LADO_CUBO,0);
+var cubo_delante_arr = new Cubo(gl, 0, LADO_CUBO, LADO_CUBO);
+var cubo_delante_derecha_arr = new Cubo(gl, LADO_CUBO, LADO_CUBO, LADO_CUBO);
+var cubo_delante_izquierda_arr = new Cubo(gl, -LADO_CUBO, LADO_CUBO, LADO_CUBO);
+var cubo_detras_arr = new Cubo(gl, 0, LADO_CUBO,-LADO_CUBO);
+var cubo_detras_derecha_arr = new Cubo(gl, LADO_CUBO, LADO_CUBO, -LADO_CUBO);
+var cubo_detras_izquierda_arr = new Cubo(gl, -LADO_CUBO, LADO_CUBO, -LADO_CUBO);
 
-y.oninput= () => {
-    mostrary.innerHTML = y.value
-}
+//fila abajo
 
-const rotarx = document.querySelector("#rotarx");
-const mostrarrotarx = document.querySelector("#mostrarrotarx");
-rotarx.oninput= () => {
-    mostrarrotarx.innerHTML = rotarx.value
-}
-
-const rotary = document.querySelector("#rotary");
-const mostrarrotary = document.querySelector("#mostrarrotary");
-rotary.oninput= () => {
-    mostrarrotary.innerHTML = rotary.value
-}
-
-const rotarz = document.querySelector("#rotarz");
-const mostrarrotarz = document.querySelector("#mostrarrotarz");
-rotarz.oninput= () => {
-    mostrarrotarz.innerHTML = rotarz.value
-}
-
-function createShader(gl, type, source) {
-    var shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    if (success) {
-      return shader;
-    }
-   
-    console.log(gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-}
-
-function createProgram(gl, vertexShader, fragmentShader) {
-    var program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    var success = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if (success) {
-      return program;
-    }
-   
-    console.log(gl.getProgramInfoLog(program));
-    gl.deleteProgram(program);
-}
-
-function TrasladoHorizontal(){
-    var mov = parseFloat(x.value) - pos_x; 
-    var m14 = Mat4_Translate([mov, 0, 0]);
-    matrix = matrix.compose(m14);
-
-    pos_x = parseFloat(x.value);
-}
-
-function TrasladoVertical(){
-    var mov = parseFloat(y.value) - pos_y; 
-    var m14 = Mat4_Translate([0, mov, 0]);
-    matrix = matrix.compose(m14);
-
-    pos_y = parseFloat(y.value);
-}
-
-function RotacionX(){
-    var mov = parseFloat(rotarx.value) - rota_x; 
-    var m14 = Mat4_RotationXdeg(mov);
-    matrix = matrix.compose(m14);
-
-    rota_x = parseFloat(rotarx.value);
-}
-
-function RotacionY(){
-    var mov = parseFloat(rotary.value) - rota_y; 
-    var m14 = Mat4_RotationYdeg(mov);
-    matrix = matrix.compose(m14);
-
-    rota_y = parseFloat(rotary.value);
-}
-
-function RotacionZ(){
-    var mov = parseFloat(rotarz.value) - rota_z; 
-    var m14 = Mat4_RotationZdeg(mov);
-    matrix = matrix.compose(m14);
-
-    rota_z = parseFloat(rotarz.value);
-}
-
-// Draw a the scene.
-function drawScene() {
-    var vertexShaderSource = document.querySelector("#vertex-shader-3d").text;
-    var fragmentShaderSource = document.querySelector("#fragment-shader-2d").text;
-    
-    var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-
-    var program = createProgram(gl, vertexShader, fragmentShader);
-    var positionLocation = gl.getAttribLocation(program, "a_position");
-    var matrixLocation = gl.getUniformLocation(program, "u_matrix");
-    var colorLocation = gl.getAttribLocation(program, 'a_color');
-   
-    //posiciones
-    const positionBuffer = gl.createBuffer();
-    
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-    //colores
-    const colorBuffer = gl.createBuffer();
-    
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(colorLocation);
-    gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, 0, 0);
-
-
-    //indices
-    const indexBuffer = gl.createBuffer();
-    // convierte este búfer en el 'ELEMENT_ARRAY_BUFFER' actual
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-    // Limpiar el lienzo
-    gl.clearColor(0, 0, 0, 0);
-
-    // Dile que use nuestro programa (par de shaders)
-    gl.useProgram(program);
-    gl.enable(gl.DEPTH_TEST);
-
-    
-    // Vincular el búfer de posición.
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    // vincular el búfer que contiene los índices
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-    
-
-
-  // Establecer la matriz como valor de la variable uniforme en el shader
-    gl.uniformMatrix4fv(matrixLocation, false, matrix);
-
-
-    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-}
-
-var indices = [
-
-    //cara delantera
-    0, 1, 2,   // primer triangulo
-    2, 1, 3,   // segundo triangulo
-
-    //cara derecha
-    2, 3, 5,
-    5, 3, 4,
-
-    //cara trasera
-    5,4,7,
-    7,4,6,
-
-    //cara izq
-    7,6,0,
-    0,6,1,
-
-    //cara arriba
-    6,1,4,
-    4,1,3,
-
-    //Cara abajo
-    7,0,5,
-    0,5,2,
-
-];
-
-
-// posicion inicial del cubo
-var positions = [
-    0, 0, LADO_CUBO, //a
-    0, LADO_CUBO, LADO_CUBO, //b
-    LADO_CUBO, 0, LADO_CUBO, //c
-    LADO_CUBO, LADO_CUBO, LADO_CUBO, //d
-    LADO_CUBO, LADO_CUBO, 0, //e
-    LADO_CUBO, 0, 0, //f
-    0, LADO_CUBO, 0, //g
-    0, 0, 0, //h
-];
-
-var colors = [
-    1,0,0,1, //rojo
-    1,0,0,1, //rojo
-    1,0,0,1, //rojo
-    1,0,0,1, //rojo
-
-    1,1,0,1, //amarillo
-    1,1,0,1, //amarillo
-    1,1,0,1, //amarillo
-    1,1,0,1, //amarillo
-];
-
-
-
-// Crear una matriz de 4x4
-var matrix = new Mat4([
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 1.0, 0.0,
-    0.0, 0.0, 0.0, 1.0
-]);
+var cubo_ab = new Cubo(gl, 0,-LADO_CUBO,0);
+var cubo_derecha_ab = new Cubo(gl, LADO_CUBO, -LADO_CUBO,0);
+var cubo_izquierda_ab = new Cubo(gl, -LADO_CUBO, -LADO_CUBO,0);
+var cubo_delante_ab = new Cubo(gl, 0, -LADO_CUBO, LADO_CUBO);
+var cubo_delante_derecha_ab = new Cubo(gl, LADO_CUBO, -LADO_CUBO, LADO_CUBO);
+var cubo_delante_izquierda_ab = new Cubo(gl, -LADO_CUBO, -LADO_CUBO, LADO_CUBO);
+var cubo_detras_ab = new Cubo(gl, 0, -LADO_CUBO,-LADO_CUBO);
+var cubo_detras_derecha_ab = new Cubo(gl, LADO_CUBO, -LADO_CUBO, -LADO_CUBO);
+var cubo_detras_izquierda_ab = new Cubo(gl, -LADO_CUBO, -LADO_CUBO, -LADO_CUBO);
 
 
 const range_x = document.getElementById("x");
@@ -240,29 +43,347 @@ const range_rotary = document.getElementById("rotary");
 const range_rotarz = document.getElementById("rotarz");
 const output = document.getElementById("demo");
 
-drawScene();
+dibujar(cubo);
+dibujar(cubo_derecha);
+dibujar(cubo_izquierda);
+dibujar(cubo_delante);
+dibujar(cubo_delante_derecha);
+dibujar(cubo_delante_izquierda);
+dibujar(cubo_detras);
+dibujar(cubo_delante_derecha);
+dibujar(cubo_detras_izquierda);
 
-range_x.addEventListener("input",  function() {
-    TrasladoHorizontal();
-    drawScene();
-});
+dibujar(cubo_arr);
+dibujar(cubo_derecha_arr);
+dibujar(cubo_izquierda_arr);
+dibujar(cubo_delante_arr);
+dibujar(cubo_delante_derecha_arr);
+dibujar(cubo_delante_izquierda_arr);
+dibujar(cubo_detras_arr);
+dibujar(cubo_detras_derecha_arr);
+dibujar(cubo_detras_izquierda_arr);
 
-range_y.addEventListener("input",  function() {
-    TrasladoVertical();
-    drawScene();
-});
+dibujar(cubo_ab);
+dibujar(cubo_derecha_ab);
+dibujar(cubo_izquierda_ab);
+dibujar(cubo_delante_ab);
+dibujar(cubo_delante_derecha_ab);
+dibujar(cubo_delante_izquierda_ab);
+dibujar(cubo_detras_ab);
+dibujar(cubo_detras_derecha_ab);
+dibujar(cubo_detras_izquierda_ab);
+
+
 
 range_rotarx.addEventListener("input",  function() {
-    RotacionX();
-    drawScene();
+    cubo.RotacionX(rotarx.value);
+    dibujar(cubo);
+    cubo_derecha.RotacionX(rotarx.value);
+    dibujar(cubo_derecha);
+    cubo_izquierda.RotacionX(rotarx.value);
+    dibujar(cubo_izquierda);
+    cubo_delante.RotacionX(rotarx.value);
+    dibujar(cubo_delante);
+    cubo_delante_derecha.RotacionX(rotarx.value);
+    dibujar(cubo_delante_derecha);
+    cubo_delante_izquierda.RotacionX(rotarx.value);
+    dibujar(cubo_delante_izquierda);
+    cubo_detras.RotacionX(rotarx.value);
+    dibujar(cubo_detras);
+    cubo_detras_derecha.RotacionX(rotarx.value);
+    dibujar(cubo_detras_derecha);
+    cubo_detras_izquierda.RotacionX(rotarx.value);
+    dibujar(cubo_detras_izquierda);
+
+    cubo_arr.RotacionX(rotarx.value);
+    dibujar(cubo_arr);
+    cubo_derecha_arr.RotacionX(rotarx.value);
+    dibujar(cubo_derecha_arr);
+    cubo_izquierda_arr.RotacionX(rotarx.value);
+    dibujar(cubo_izquierda_arr);
+    cubo_delante_arr.RotacionX(rotarx.value);
+    dibujar(cubo_delante_arr);
+    cubo_delante_derecha_arr.RotacionX(rotarx.value);
+    dibujar(cubo_delante_derecha_arr);
+    cubo_delante_izquierda_arr.RotacionX(rotarx.value);
+    dibujar(cubo_delante_izquierda_arr);
+    cubo_detras_arr.RotacionX(rotarx.value);
+    dibujar(cubo_detras_arr);
+    cubo_detras_derecha_arr.RotacionX(rotarx.value);
+    dibujar(cubo_detras_derecha_arr);
+    cubo_detras_izquierda_arr.RotacionX(rotarx.value);
+    dibujar(cubo_detras_izquierda_arr);
+
+    cubo_ab.RotacionX(rotarx.value);
+    dibujar(cubo_ab);
+    cubo_derecha_ab.RotacionX(rotarx.value);
+    dibujar(cubo_derecha_ab);
+    cubo_izquierda_ab.RotacionX(rotarx.value);
+    dibujar(cubo_izquierda_ab);
+    cubo_delante_ab.RotacionX(rotarx.value);
+    dibujar(cubo_delante_ab);
+    cubo_delante_derecha_ab.RotacionX(rotarx.value);
+    dibujar(cubo_delante_derecha_ab);
+    cubo_delante_izquierda_ab.RotacionX(rotarx.value);
+    dibujar(cubo_delante_izquierda_ab);
+    cubo_detras_ab.RotacionX(rotarx.value);
+    dibujar(cubo_detras_ab);
+    cubo_detras_derecha_ab.RotacionX(rotarx.value);
+    dibujar(cubo_detras_derecha_ab);
+    cubo_detras_izquierda_ab.RotacionX(rotarx.value);
+    dibujar(cubo_detras_izquierda_ab);
 });
 
 range_rotary.addEventListener("input",  function() {
-    RotacionY();
-    drawScene();
+    cubo.RotacionY(rotary.value);
+    dibujar(cubo);
+    cubo_derecha.RotacionY(rotary.value);
+    dibujar(cubo_derecha);
+    cubo_izquierda.RotacionY(rotary.value);
+    dibujar(cubo_izquierda);
+    cubo_delante.RotacionY(rotary.value);
+    dibujar(cubo_delante);
+    cubo_delante_derecha.RotacionY(rotary.value);
+    dibujar(cubo_delante_derecha);
+    cubo_delante_izquierda.RotacionY(rotary.value);
+    dibujar(cubo_delante_izquierda);
+    cubo_detras.RotacionY(rotary.value);
+    dibujar(cubo_detras);
+    cubo_detras_derecha.RotacionY(rotary.value);
+    dibujar(cubo_detras_derecha);
+    cubo_detras_izquierda.RotacionY(rotary.value);
+    dibujar(cubo_detras_izquierda);
+
+    cubo_arr.RotacionY(rotary.value);
+    dibujar(cubo_arr);
+    cubo_derecha_arr.RotacionY(rotary.value);
+    dibujar(cubo_derecha_arr);
+    cubo_izquierda_arr.RotacionY(rotary.value);
+    dibujar(cubo_izquierda_arr);
+    cubo_delante_arr.RotacionY(rotary.value);
+    dibujar(cubo_delante_arr);
+    cubo_delante_derecha_arr.RotacionY(rotary.value);
+    dibujar(cubo_delante_derecha_arr);
+    cubo_delante_izquierda_arr.RotacionY(rotary.value);
+    dibujar(cubo_delante_izquierda_arr);
+    cubo_detras_arr.RotacionY(rotary.value);
+    dibujar(cubo_detras_arr);
+    cubo_detras_derecha_arr.RotacionY(rotary.value);
+    dibujar(cubo_detras_derecha_arr);
+    cubo_detras_izquierda_arr.RotacionY(rotary.value);
+    dibujar(cubo_detras_izquierda_arr);
+
+    cubo_ab.RotacionY(rotary.value);
+    dibujar(cubo_ab);
+    cubo_derecha_ab.RotacionY(rotary.value);
+    dibujar(cubo_derecha_ab);
+    cubo_izquierda_ab.RotacionY(rotary.value);
+    dibujar(cubo_izquierda_ab);
+    cubo_delante_ab.RotacionY(rotary.value);
+    dibujar(cubo_delante_ab);
+    cubo_delante_derecha_ab.RotacionY(rotary.value);
+    dibujar(cubo_delante_derecha_ab);
+    cubo_delante_izquierda_ab.RotacionY(rotary.value);
+    dibujar(cubo_delante_izquierda_ab);
+    cubo_detras_ab.RotacionY(rotary.value);
+    dibujar(cubo_detras_ab);
+    cubo_detras_derecha_ab.RotacionY(rotary.value);
+    dibujar(cubo_detras_derecha_ab);
+    cubo_detras_izquierda_ab.RotacionY(rotary.value);
+    dibujar(cubo_detras_izquierda_ab);
 });
 
 range_rotarz.addEventListener("input",  function() {
-    RotacionZ();
-    drawScene();
+    cubo.RotacionZ(rotarz.value);
+    dibujar(cubo);
+    cubo_derecha.RotacionZ(rotarz.value);
+    dibujar(cubo_derecha);
+    cubo_izquierda.RotacionZ(rotarz.value);
+    dibujar(cubo_izquierda);
+    cubo_delante.RotacionZ(rotarz.value);
+    dibujar(cubo_delante);
+    cubo_delante_derecha.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_derecha);
+    cubo_delante_izquierda.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_izquierda);
+    cubo_detras.RotacionZ(rotarz.value);
+    dibujar(cubo_detras);
+    cubo_detras_derecha.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_derecha);
+    cubo_detras_izquierda.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_izquierda);
+
+    cubo_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_arr);
+    cubo_derecha_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_derecha_arr);
+    cubo_izquierda_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_izquierda_arr);
+    cubo_delante_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_arr);
+    cubo_delante_derecha_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_derecha_arr);
+    cubo_delante_izquierda_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_izquierda_arr);
+    cubo_detras_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_arr);
+    cubo_detras_derecha_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_derecha_arr);
+    cubo_detras_izquierda_arr.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_izquierda_arr);
+
+    cubo_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_ab);
+    cubo_derecha_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_derecha_ab);
+    cubo_izquierda_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_izquierda_ab);
+    cubo_delante_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_ab);
+    cubo_delante_derecha_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_derecha_ab);
+    cubo_delante_izquierda_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_delante_izquierda_ab);
+    cubo_detras_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_ab);
+    cubo_detras_derecha_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_derecha_ab);
+    cubo_detras_izquierda_ab.RotacionZ(rotarz.value);
+    dibujar(cubo_detras_izquierda_ab);
+
 });
+
+
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "ArrowRight") {
+        cubo.RotacionY(-90);
+        dibujar(cubo);
+
+        cubo_derecha.RotacionY(-90);
+        dibujar(cubo_derecha);
+
+        cubo_izquierda.RotacionY(-90);
+        dibujar(cubo_izquierda);
+
+        cubo_detras.RotacionY(-90);
+        dibujar(cubo_detras);
+
+        cubo_detras_derecha.RotacionY(-90);
+        dibujar(cubo_detras_derecha);
+
+        cubo_detras_izquierda.RotacionY(-90);
+        dibujar(cubo_detras_izquierda);
+
+        cubo_delante.RotacionY(-90);
+        dibujar(cubo_delante);
+
+        cubo_delante_derecha.RotacionY(-90);
+        dibujar(cubo_delante_derecha);
+
+        cubo_delante_izquierda.RotacionY(-90);
+        dibujar(cubo_delante_izquierda);
+
+      
+        var cubo_d_temp = cubo_derecha;
+        var cubo_i_temp = cubo_izquierda;
+        var cubo_detras_temp = cubo_detras;
+        var cubo_detras_d_temp = cubo_detras_derecha;
+        var cubo_detras_i_temp = cubo_detras_izquierda;
+        var cubo_delante_temp = cubo_delante;
+        var cubo_delante_d_temp = cubo_delante_derecha;
+        var cubo_delante_i_temp = cubo_delante_izquierda;
+
+        cubo_derecha = cubo_delante_temp;
+        cubo_izquierda = cubo_detras_temp;
+        cubo_detras = cubo_d_temp;
+        cubo_detras_derecha = cubo_delante_d_temp;
+        cubo_detras_izquierda = cubo_detras_d_temp;
+        cubo_delante = cubo_i_temp
+        cubo_delante_derecha = cubo_delante_i_temp;
+        cubo_delante_izquierda = cubo_detras_i_temp;
+
+        dibujar(cubo_arr);
+        dibujar(cubo_derecha_arr);
+        dibujar(cubo_izquierda_arr);
+        dibujar(cubo_delante_arr);
+        dibujar(cubo_delante_derecha_arr);
+        dibujar(cubo_delante_izquierda_arr);
+        dibujar(cubo_detras_arr);
+        dibujar(cubo_detras_derecha_arr);
+        dibujar(cubo_detras_izquierda_arr);
+
+        dibujar(cubo_ab);
+        dibujar(cubo_derecha_ab);
+        dibujar(cubo_izquierda_ab);
+        dibujar(cubo_delante_ab);
+        dibujar(cubo_delante_derecha_ab);
+        dibujar(cubo_delante_izquierda_ab);
+        dibujar(cubo_detras_ab);
+        dibujar(cubo_detras_derecha_ab);
+        dibujar(cubo_detras_izquierda_ab);
+
+
+    }
+
+    if(event.key === "ArrowUp"){
+        cubo.RotacionX(-90);
+        dibujar(cubo);
+        cubo_detras.RotacionX(-90);
+        dibujar(cubo_detras);
+        cubo_delante.RotacionX(-90);
+        dibujar(cubo_delante);
+
+        cubo_arr.RotacionX(-90);
+        dibujar(cubo_arr);
+        cubo_detras_arr.RotacionX(-90);
+        dibujar(cubo_detras_arr);
+        cubo_delante_arr.RotacionX(-90);
+        dibujar(cubo_delante_arr);
+
+        cubo_ab.RotacionX(-90);
+        dibujar(cubo_ab);
+        cubo_detras_ab.RotacionX(-90);
+        dibujar(cubo_detras_ab);
+        cubo_delante_ab.RotacionX(-90);
+        dibujar(cubo_delante_ab);
+
+        var cubo_detras_t = cubo_detras;
+        var cubo_delante_t = cubo_delante;
+        var cubo_arr_t = cubo_arr;
+        var cubo_detras_arr_t = cubo_detras_arr;
+        var cubo_delante_arr_t = cubo_delante_arr;
+        var cubo_ab_t = cubo_ab;
+        var cubo_detras_ab_t = cubo_detras_ab;
+        var cubo_delante_ab_t = cubo_delante_ab;
+
+        
+        dibujar(cubo_izquierda);
+        dibujar(cubo_derecha);
+        dibujar(cubo_detras_derecha);
+        dibujar(cubo_detras_izquierda);
+        dibujar(cubo_delante_izquierda);
+        dibujar(cubo_delante_derecha);
+
+        dibujar(cubo_derecha_arr);
+        dibujar(cubo_izquierda_arr);
+        dibujar(cubo_delante_derecha_arr);
+        dibujar(cubo_delante_izquierda_arr);
+        dibujar(cubo_detras_derecha_arr);
+        dibujar(cubo_detras_izquierda_arr);
+
+        dibujar(cubo_derecha_ab);
+        dibujar(cubo_izquierda_ab);
+        dibujar(cubo_delante_derecha_ab);
+        dibujar(cubo_delante_izquierda_ab);
+        dibujar(cubo_detras_derecha_ab);
+        dibujar(cubo_detras_izquierda_ab);
+
+
+        
+    }
+
+    
+}
+);
+

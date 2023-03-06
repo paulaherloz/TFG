@@ -8,54 +8,36 @@
         <link rel='stylesheet'   type='text/css' href='index-style.css'>
     </head>
     <body>
-        
         <div class="mov">
 
-            <div class="mov1">
-                <h1>TRANSLACIÓN EJE X</h1>
-                <input type="range" id="x" min="-1" max="1" step="0.01"/>
-                <h2 id="mostrarx" align="center">1</h2>
-            </div>
-
-            <div>
-                <h1>TRANSLACIÓN EJE Y</h1>
-                <input type="range" id="y" min="-1" max="1" step="0.01"/>
-                <h2 id="mostrary" align="center">1</h2>
-            </div>
-        </div>
-        
-        <hr>
-        
-        <div class="mov">
-
-            <div class="mov1">
+            
+            <div class="mov2">
                 <h1>ROTACION EJE X</h1>
                 <input type="range" id="rotarx" min="0" max="360" step="0.01" value="0"/>
                 <h2 id="mostrarrotarx" align="center">0</h2>
             </div>
 
-            <div class="mov1">
+            <div class="mov2">
                 <h1>ROTACION EJE Y</h1>
                 <input type="range" id="rotary" min="0" max="360" step="0.01" value="0"/>
                 <h2 id="mostrarrotary" align="center">0</h2>
             </div>
 
-            <div class="mov1">
+            <div class="mov2">
                 <h1>ROTACION EJE Z</h1>
                 <input type="range" id="rotarz" min="0" max="360" step="0.01" value="0"/>
                 <h2 id="mostrarrotarz" align="center">0</h2>
             </div>
-
-            
         </div>
 
-    
+        
+
+        <div id="myDiv"></div>
+
         
         <canvas id="glcanvas" width="500" height="500"></canvas>
 
-        <p id="demo"></p>
-
-        
+    
     </body>
 
     
@@ -87,5 +69,6 @@
     </script>
 
     <script src="vec-mat.js"></script>
-    <script src="prueba.js"></script>
+    <script src="cubo.js"></script>
+    <script src="fila_cubo.js"></script>
 </html>

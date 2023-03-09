@@ -8,38 +8,62 @@
         <link rel='stylesheet'   type='text/css' href='index-style.css'>
     </head>
     <body>
+
         <div class="mov">
 
             
             <div class="mov2">
-                <h1>ROTACION EJE X</h1>
-                <input type="range" id="rotarx" min="0" max="360" step="0.01" value="0"/>
-                <h2 id="mostrarrotarx" align="center">0</h2>
+                <button id="rotarx">Rotar eje X rebanada izquierda</button>
             </div>
 
             <div class="mov2">
-                <h1>ROTACION EJE Y</h1>
-                <input type="range" id="rotary" min="0" max="360" step="0.01" value="0"/>
-                <h2 id="mostrarrotary" align="center">0</h2>
+                <button id="rotary">Rotar eje Y rebanada arriba</button>
             </div>
 
             <div class="mov2">
-                <h1>ROTACION EJE Z</h1>
-                <input type="range" id="rotarz" min="0" max="360" step="0.01" value="0"/>
-                <h2 id="mostrarrotarz" align="center">0</h2>
+                <button id="rotarz">Rotar eje Z rebanada delante</button>
             </div>
         </div>
+        <br>
+        <div class="mov">
 
-        
+            
+            <div class="mov2">
+                <button id="rotarx1">Rotar eje X rebanada centro</button>
+            </div>
 
-        <div id="myDiv"></div>
+            <div class="mov2">
+                <button id="rotary1">Rotar eje Y rebanada centro</button>
+            </div>
 
+            <div class="mov2">
+                <button id="rotarz1">Rotar eje Z rebanada centro</button>
+            </div>
+        </div>
+        <br>
+        <div class="mov">
+
+            
+            <div class="mov2">
+                <button id="rotarx2">Rotar eje X rebanada derecha</button>
+            </div>
+
+            <div class="mov2">
+                <button id="rotary2">Rotar eje Y rebanada abajo</button>
+            </div>
+
+            <div class="mov2">
+                <button id="rotarz2">Rotar eje Z rebanada detras</button>
+            </div>
+        </div>
+       
         
         <canvas id="glcanvas" width="500" height="500"></canvas>
 
     
     </body>
 
+    
     
     <script id="vertex-shader-3d" type="x-shader/x-vertex">
         attribute vec4 a_position;
@@ -70,5 +94,5 @@
 
     <script src="vec-mat.js"></script>
     <script src="cubo.js"></script>
-    <script src="prueba.js"></script>
+    <script src="cubo_rubix.js"></script>
 </html>

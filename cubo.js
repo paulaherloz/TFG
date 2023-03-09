@@ -2,29 +2,17 @@ const canvas = document.getElementById('glcanvas');
 const gl = canvas.getContext('webgl2');
 const LADO_CUBO = 0.3;
 
+var vertexShaderSource = document.querySelector("#vertex-shader-3d").text;
+var fragmentShaderSource = document.querySelector("#fragment-shader-2d").text;
+        
+const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
 
-const rotarx = document.querySelector("#rotarx");
-const mostrarrotarx = document.querySelector("#mostrarrotarx");
-rotarx.oninput= () => {
-    mostrarrotarx.innerHTML = rotarx.value
-}
-
-const rotary = document.querySelector("#rotary");
-const mostrarrotary = document.querySelector("#mostrarrotary");
-rotary.oninput= () => {
-    mostrarrotary.innerHTML = rotary.value
-}
-
-const rotarz = document.querySelector("#rotarz");
-const mostrarrotarz = document.querySelector("#mostrarrotarz");
-rotarz.oninput= () => {
-    mostrarrotarz.innerHTML = rotarz.value
-}
 
 
 class Cubo {
-    constructor(gl, pos_ini_x,pos_ini_y, pos_ini_z) {
+    constructor(gl, program, pos_ini_x,pos_ini_y, pos_ini_z) {
         this.gl = gl;
 
         this.vertices = [
@@ -128,25 +116,59 @@ class Cubo {
         this.rota_x = 0.0;
         this.rota_y = 0.0;
         this.rota_z = 0.0;
+
+        this.positionBuffer = undefined;
+        this.colorBuffer = undefined;
+        this.indexBuffer = undefined;
+        this.program = program;
         
     }
 
-    TrasladoHorizontal(){
-        var mov = parseFloat(x.value) - this.pos_x; 
-        var m14 = Mat4_Translate([mov, 0, 0]);
-        this.matrix = this.matrix.compose(m14);
+    dibujar() {
+        if (typeof this.positionBuffer === 'undefined') {
     
-        this.pos_x = parseFloat(x.value);
-    }
+            this.positionLocation = gl.getAttribLocation(this.program, "a_position");
+            this.matrixLocation = gl.getUniformLocation(this.program, "u_matrix");
+            this.colorLocation = gl.getAttribLocation(this.program, 'a_color');
     
-    TrasladoVertical(){
-        var mov = parseFloat(y.value) - this.pos_y; 
-        var m14 = Mat4_Translate([0, mov, 0]);
-        this.matrix = this.matrix.compose(m14);
+            this.positionBuffer = gl.createBuffer();
     
-        this.pos_y = parseFloat(y.value);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+            gl.enableVertexAttribArray(this.positionLocation);
+            gl.vertexAttribPointer(this.positionLocation, 3, gl.FLOAT, false, 0, 0);
+    
+            this.colorBuffer = gl.createBuffer();
+    
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colores), gl.STATIC_DRAW);
+            gl.enableVertexAttribArray(this.colorLocation);
+            gl.vertexAttribPointer(this.colorLocation, 4, gl.FLOAT, false, 0, 0);
+    
+            this.indexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
+    
+        } 
+        
+    
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    
+        gl.clearColor(0, 0, 0, 0);
+    
+        gl.useProgram(this.program);
+        gl.enable(gl.DEPTH_TEST);
+    
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+
+        gl.uniformMatrix4fv(this.matrixLocation, false, this.matrix);
+    
+        gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
     }
 
+    
     
     
     RotacionX(angulo){
@@ -203,69 +225,35 @@ function createShader(gl, type, source) {
 }
 
 
-function dibujar(objeto){
-        var vertexShaderSource = document.querySelector("#vertex-shader-3d").text;
-        var fragmentShaderSource = document.querySelector("#fragment-shader-2d").text;
-        
-        var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-        var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
-        var program = createProgram(gl, vertexShader, fragmentShader);
-        var positionLocation = gl.getAttribLocation(program, "a_position");
-        var matrixLocation = gl.getUniformLocation(program, "u_matrix");
-        var colorLocation = gl.getAttribLocation(program, 'a_color');
+
+/*
+var cubo = new Cubo(gl, 0,0,0);
+
+cubo.dibujar();
     
-        //posiciones
-        const positionBuffer = gl.createBuffer();
-        
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(objeto.vertices), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(positionLocation);
-        gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+const range_x = document.getElementById("x");
+const range_y = document.getElementById("y");
+const range_rotarx = document.getElementById("rotarx");
+const range_rotary = document.getElementById("rotary");
+const range_rotarz = document.getElementById("rotarz");
+const output = document.getElementById("demo");
 
-        //colores
-        const colorBuffer = gl.createBuffer();
-        
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(objeto.colores), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(colorLocation);
-        gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, 0, 0);
-
-
-        //indices
-        const indexBuffer = gl.createBuffer();
-        // convierte este búfer en el 'ELEMENT_ARRAY_BUFFER' actual
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objeto.indices), gl.STATIC_DRAW);
-
-
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-        // Limpiar el lienzo
-        gl.clearColor(0, 0, 0, 0);
-
-        // Dile que use nuestro programa (par de shaders)
-        gl.useProgram(program);
-        gl.enable(gl.DEPTH_TEST);
-
-        
-        // Vincular el búfer de posición.
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        // vincular el búfer que contiene los índices
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
+range_rotarx.addEventListener("input",  function() {
+    cubo.RotacionX(rotarx.value);
+    // Limpiar el lienzo
     
+    cubo.dibujar();
+});
 
-    // Establecer la matriz como valor de la variable uniforme en el shader
-        gl.uniformMatrix4fv(matrixLocation, false, objeto.matrix);
+range_rotary.addEventListener("input",  function() {
+    cubo.RotacionY(rotary.value);
+    // Limpiar el lienzo
+    cubo.dibujar();
+});
 
-
-        gl.drawElements(gl.TRIANGLES, objeto.indices.length, gl.UNSIGNED_SHORT, 0);
-}
-    
-
-
-
-
-
-    
+range_rotarz.addEventListener("input",  function() {
+    cubo.RotacionZ(rotarz.value);
+    // Limpiar el lienzo
+    cubo.dibujar();
+});*/
